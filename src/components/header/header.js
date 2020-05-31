@@ -29,7 +29,7 @@ const Header = (props) => {
                 <div className="row">
                     <div className="col-xs-12">
                     <div className="col-5 col-sm-3">Logo</div>
-                    <div className="col-5 col-sm-2">Home</div>
+                    <div className="col-5 col-sm-2"><Link to="/home">Home</Link></div>
                     <div className="col-5 col-sm-3">
                     <form>
                         <input type="text" onChange={handleChange} className="search" name="search" value="" placeholder="Search Repair my ship"/>

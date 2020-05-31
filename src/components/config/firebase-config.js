@@ -1,4 +1,3 @@
-import React, {useState} from 'react';
 import app from 'firebase/app';
 import 'firebase/auth';
 import 'firebase/firebase-firestore';
@@ -18,6 +17,7 @@ class Firebase {
       app.initializeApp(config);
       this.auth = app.auth();
       this.db = app.firestore();
+      //console.log(this.auth.currentUser.uid);
     }
     // *** Auth API ***
        signIn(email, password) {
@@ -46,12 +46,94 @@ class Firebase {
                this.auth.onAuthStateChanged(resolve)
            })
        }
+        getCurrentUsername() {
+            return this.auth.currentUser && this.auth.currentUser.displayName;
+        }
+        
 
-     getCurrentUsername() {
-        return this.auth.currentUser && this.auth.currentUser.displayName;
+     // *** Questions & Answers  API ***  
+       addQuestions(data) {
+        data.createdAt = new Date().toISOString();
+        this.db.collection("questions").add(data)
+            .then(function() {
+                console.log("Questions successfully Submitted!");
+            
+            })
+            .catch(function(error) {
+                console.error("Error Question: ", error);
+            }); 
        }
+       retrieveUserQuesAns() {
+          return  this.db.collection("questions").where('uid', '==', this.auth.currentUser.uid).get()
+          .then(function(res) {
+               // console.log('QA' , res.ME.docChanges);
+              // console.log('id' , res);
+                let arr = [];
+                res.forEach(doc => {
+                    //console.log(doc.id);
+                    let obj = {...doc.data(), id: doc.id}
+                        arr.push(obj)
+                    }); 
+                //console.log(arr);
+                return arr;
+            
+            })
+            .catch(function(error) {
+                console.error("Error Question: ", error);
+            }); 
+                       
+       }
+       retrieveCommentsById(id) {
+           // console.log(id);
+            return  this.db.collection("questions").doc(id).get()
+          .then(function(res) { 
+              // console.log(res);
+              let obj = {...res.data(), id: id}
+              return obj;
+            })
+          .catch(function(error) {
+              console.error("Error Question: ", error);
+          }); 
+       }
+       addComments(data) {
+        data.createdAt = new Date().toISOString();
+      //  data.comments = this.db.collection('questions').doc(data.qid);
+        return this.db.collection("comments").add(data)
+            .then(res => {
+               //  console.log(res);
+                console.log("comments successfully Submitted!");
+            return this.db.collection('comments').doc(res.id).get()
+            
+            }).then(result => { 
+                //console.log('comments', result.data());
+                let obj = {...result.data(), commentId: result.id}
+                return obj;
+            })
+            .catch(function(error) {
+                console.error("Error Question: ", error);
+            }); 
+        }
+      getAllCommentsByQuesId(id){
+        return  this.db.collection("comments").where('qid', '==', id).get()
+        .then(function(res) {
+             // console.log('QA' , res.ME.docChanges);
+            // console.log('id' , res);
+              let arr = [];
+              res.forEach(doc => {
+                  //console.log(doc.id);
+                  let obj = {...doc.data(), id: doc.id}
+                      arr.push(obj)
+                  }); 
+              //console.log(arr);
+              return arr;
+          
+          })
+          .catch(function(error) {
+              console.error("Error Question: ", error);
+          }); 
+      }
+       
   }
 
- // export const FirebaseContext = React.createContext(null);  
 
  export default new Firebase()
